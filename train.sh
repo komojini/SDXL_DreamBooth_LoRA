@@ -1,8 +1,9 @@
 
 
-MODEL_PATH="$HOME/projects/AI/sd/stable-diffusion-webui/models/Stable-diffusion/DreamShaper XL1.0/alpha2 (xl1.0)"
+# MODEL_PATH="$HOME/projects/AI/sd/stable-diffusion-webui/models/Stable-diffusion/DreamShaper XL1.0/alpha2 (xl1.0)"
+MODEL_PATH="stabilityai/stable-diffusion-xl-base-1.0"
 
-INSTANCE_DATA_DIR="datasets/minsuck_png_dataset"
+INSTANCE_DATA_DIR="datasets/minsuck_resized_dataset"
 OUTPUT_DIR="checkpoints/minsuck_checkpoints"
 
 INSTANCE_PROMPT="a photo of zwc cat"

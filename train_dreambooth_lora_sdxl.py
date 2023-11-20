@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # coding=utf-8
 # Copyright 2023 The HuggingFace Inc. team. All rights reserved.
 #
@@ -46,7 +45,7 @@ from diffusers import (
     AutoencoderKL,
     DDPMScheduler,
     DPMSolverMultistepScheduler,
-    StableDiffusionXLPipelin,
+    StableDiffusionXLPipeline,
     UNet2DConditionModel,
 )
 from diffusers.loaders import LoraLoaderMixin
