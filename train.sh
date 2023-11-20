@@ -1,12 +1,20 @@
 
 
+MODEL_PATH="$HOME/projects/AI/sd/stable-diffusion-webui/models/Stable-diffusion/DreamShaper XL1.0/alpha2 (xl1.0)"
+
+INSTANCE_DATA_DIR="datasets/minsuck_png_dataset"
+OUTPUT_DIR="checkpoints/minsuck_checkpoints"
+
+INSTANCE_PROMPT="a photo of zwc cat"
+RESOLUTION="512"
+
 accelerate launch train_dreambooth_lora_sdxl.py \
-  --pretrained_model_name_or_path="stabilityai/stable-diffusion-xl-base-0.9" \
-  --instance_data_dir=data \
-  --output_dir=output \
+  --pretrained_model_name_or_path=$MODEL_PATH \
+  --instance_data_dir=$INSTANCE_DATA_DIR \
+  --output_dir=$OUTPUT_DIR \
   --mixed_precision="fp16" \
-  --instance_prompt="a photo of zwc dog" \
-  --resolution=1024 \
+  --instance_prompt=$INSTANCE_PROMPT \
+  --resolution=$RESOLUTION \
   --train_batch_size=1 \
   --gradient_accumulation_steps=4 \
   --learning_rate=1e-4 \
