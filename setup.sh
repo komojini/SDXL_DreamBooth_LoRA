@@ -16,6 +16,6 @@ pip install git+https://github.com/huggingface/diffusers
 
 pip install git+https://github.com/huggingface/diffusers
 
-pip install torchvision invisible_watermark transformers accelerate safetensors
+pip install torchvision invisible_watermark transformers accelerate safetensors gradio
 accelerate config
 
