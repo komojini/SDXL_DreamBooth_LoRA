@@ -10,6 +10,9 @@ pipe = DiffusionPipeline.from_pretrained(
 pipe.to("cuda")
 pipe.load_lora_weights(lora_path)
 
-prompt = "A cute oil painting of zwc cat, simple, cartoon, vector art"
+prompt = "A photo of zwc cat wearing santa clothes with crhistmas background, simple, snowing"
 image = pipe(prompt, num_inference_steps=30, guidance_scale=7.5).images[0]
-image.save("outputs/minsuck.png")
+image.save("outputs/minsuck_3412.png")
+
+
+
