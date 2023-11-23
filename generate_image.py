@@ -12,7 +12,8 @@ pipe.to("cuda")
 pipe.load_lora_weights(lora_path)
 
 prompt = "A photo of zwc cat wearing santa clothes, cristmas background, cristmas tree, snowing"
-image = pipe(prompt, num_inference_steps=30, guidance_scale=7.5).images[0]
+image = pipe(prompt, num_inference_steps=30, 
+             guidance_scale=7.5).images[0]
 image.save("outputs/minsuck_35234.png")
 
 
