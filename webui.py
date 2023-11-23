@@ -5,11 +5,10 @@ import torch
 from datetime import datetime
 import os 
 
+
 OUTPUT_ROOT = "checkpoints/"
 DATASETS_DIR = "datasets/"
 MODEL_PATH = "stabilityai/stable-diffusion-xl-base-1.0"
-TOKEN = "zwc"
-CLASS_NAME = "cat"
 RESOLUTION = 512
 MAX_TRAIN_STEP = 1000
 CHECKPOINTING_STEPS = 200
@@ -23,6 +22,7 @@ pipe: DiffusionPipeline = None
 
 
 def load_model():
+    global pipe
     pipe = DiffusionPipeline.from_pretrained(
             MODEL_PATH,
             torch_dtype=torch.float16,
@@ -52,11 +52,6 @@ def crop_image(image_path, save_path):
     resized_image.save(save_path)
     return save_path
 
-
-def empty_cache():
-    del pipe
-    torch.cuda.empty_cache() # PyTorch thing
-    print("Closing Gradio")
 
 
 def get_image(prompt, negative_prompt, inference_steps):
@@ -91,24 +86,30 @@ def create_dataset(files, pet_name):
 
 
 def empty_gpu_memory():
+    global pipe
+    if not pipe:
+        return
     del pipe
     torch.cuda.empty_cache()
 
 
-def train(pet_name, progress=gr.Progress()):
+def train(pet_name, class_name, token, progress=gr.Progress()):
     empty_gpu_memory()
 
-    instance_prompt = f"A photo of {TOKEN} {CLASS_NAME}"
+    instance_prompt = f"A photo of {token} {class_name}"
     output_dir = os.path.join(OUTPUT_ROOT, pet_name)
     instance_data_dir = os.path.join(DATASETS_DIR, pet_name)
 
+    if not os.path.exists(output_dir):
+        os.mkdir(output_dir)
+
     train_command = f"""
 accelerate launch train_dreambooth_lora_sdxl.py \
-  --pretrained_model_name_or_path={MODEL_PATH} \
+  --pretrained_model_name_or_path="{MODEL_PATH}" \
   --instance_data_dir={instance_data_dir} \
   --output_dir={output_dir} \
   --mixed_precision="fp16" \
-  --instance_prompt={instance_prompt} \
+  --instance_prompt="{instance_prompt}" \
   --resolution={RESOLUTION} \
   --train_batch_size=1 \
   --gradient_accumulation_steps=4 \
@@ -122,7 +123,6 @@ accelerate launch train_dreambooth_lora_sdxl.py \
 """
     return os.system(train_command)
     
-
 
 if __name__ == "__main__":
     demo = gr.Blocks()
@@ -153,11 +153,20 @@ if __name__ == "__main__":
                 with gr.Row():
                     images = gr.File(file_types=["image"], file_count="multiple")
                     preview_images = gr.Image()
-
-                pet_name_input = gr.Textbox(
-                        value=str(datetime.now().timestamp),
+                
+                with gr.Row():
+                    pet_name_input = gr.Textbox(
+                        value="ms",
                         label="Pet Name"
                         )
+                    class_name_input = gr.Textbox(
+                        value="cat",
+                        label="Class Name"
+                    )
+                    token_input = gr.Textbox(
+                        value="zwc",
+                        label="Token Prompt",
+                    )
                 images.select(preview, images, preview_images)
                 prepare_dataset_btn = gr.Button("Prepare Dataset")
                 dataset_images = gr.Gallery(
@@ -167,36 +176,40 @@ if __name__ == "__main__":
                         object_fit="contain",
                         height="auto",
                         )
-                train_btn = gr.Button("Train")
-                train_log = gr.Textbox(
-                    label="Train Log"
-                )
+                with gr.Row():
+                    train_btn = gr.Button("Train")
+                    train_log = gr.Textbox(
+                        label="Train Log",
+                        max_lines=20,
+                    )
 
         prepare_dataset_btn.click(
-                create_dataset,
-                inputs=[
-                    images,
-                    pet_name_input,
-                    ],
-                outputs=[
-                    dataset_images,
-                    ],
-                )
+            create_dataset,
+            inputs=[
+                images,
+                pet_name_input,
+                ],
+            outputs=[
+                dataset_images,
+                ],
+            )
         generate_image_btn.click(
-                get_image,
-                inputs=[
-                    prompt_input,
-                    negative_prompt_input,
-                    num_inference_steps_input,
-                    ],
-                outputs=[
-                    image_output,
-                    ]
-                )
+            get_image,
+            inputs=[
+                prompt_input,
+                negative_prompt_input,
+                num_inference_steps_input,
+                ],
+            outputs=[
+                image_output,
+                ]
+            )
         train_btn.click(
             train,
             inputs=[
                 pet_name_input,
+                class_name_input,
+                token_input,
             ],
             outputs=[
                 train_log,
