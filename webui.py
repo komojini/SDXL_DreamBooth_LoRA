@@ -1,26 +1,34 @@
 from PIL import Image
 import gradio as gr
-from io import BytesIO
 from diffusers import DiffusionPipeline
 import torch
 from datetime import datetime
 import os 
 
+OUTPUT_ROOT = "checkpoints/"
 DATASETS_DIR = "datasets/"
+MODEL_PATH = "stabilityai/stable-diffusion-xl-base-1.0"
+TOKEN = "zwc"
+CLASS_NAME = "cat"
+RESOLUTION = 512
+MAX_TRAIN_STEP = 1000
+CHECKPOINTING_STEPS = 200
 
 
 title = """SDXL Lora DreamBooth"""
 
 description = """#### Generate images of your own pet."""
 lora_path = "checkpoints/minsuck_checkpoints/checkpoint-1000"
+pipe: DiffusionPipeline = None
 
-# pipe = DiffusionPipeline.from_pretrained(
-#         "stabilityai/stable-diffusion-xl-base-1.0",
-#         torch_dtype=torch.float16,
-#         )
-# pipe.to("cuda")
-# pipe.load_lora_weights(lora_path)
 
+def load_model():
+    pipe = DiffusionPipeline.from_pretrained(
+            MODEL_PATH,
+            torch_dtype=torch.float16,
+            )
+    pipe.to("cuda")
+    pipe.load_lora_weights(lora_path)
 
 
 def crop_image(image_path, save_path):
@@ -37,7 +45,7 @@ def crop_image(image_path, save_path):
     cropped_image = image.crop((left, top, right, bottom))
 
     # Resize the cropped image to 512x512 pixels
-    new_size = (512, 512)
+    new_size = (RESOLUTION, RESOLUTION)
     resized_image = cropped_image.resize(new_size)
 
     # Save the cropped and resized image
@@ -55,8 +63,8 @@ def get_image(prompt, negative_prompt, inference_steps):
     payload = {
             "prompt": prompt,
             "negative_prompt": negative_prompt,
-            "width": 512,
-            "height": 512,
+            "width": RESOLUTION,
+            "height": RESOLUTION,
             #    "samples": "1",
             "num_inference_steps": inference_steps,
             "guidance_scale": 7.5
@@ -82,8 +90,39 @@ def create_dataset(files, pet_name):
     return resized_images
 
 
-def train(pet_name):
-    pass
+def empty_gpu_memory():
+    del pipe
+    torch.cuda.empty_cache()
+
+
+def train(pet_name, progress=gr.Progress()):
+    empty_gpu_memory()
+
+    instance_prompt = f"A photo of {TOKEN} {CLASS_NAME}"
+    output_dir = os.path.join(OUTPUT_ROOT, pet_name)
+    instance_data_dir = os.path.join(DATASETS_DIR, pet_name)
+
+    train_command = f"""
+accelerate launch train_dreambooth_lora_sdxl.py \
+  --pretrained_model_name_or_path={MODEL_PATH} \
+  --instance_data_dir={instance_data_dir} \
+  --output_dir={output_dir} \
+  --mixed_precision="fp16" \
+  --instance_prompt={instance_prompt} \
+  --resolution={RESOLUTION} \
+  --train_batch_size=1 \
+  --gradient_accumulation_steps=4 \
+  --learning_rate=1e-4 \
+  --lr_scheduler="constant" \
+  --lr_warmup_steps=0 \
+  --checkpointing_steps={CHECKPOINTING_STEPS} \
+  --max_train_steps={MAX_TRAIN_STEP} \
+  --seed="0" \
+  --checkpoints_total_limit=5
+"""
+    return os.system(train_command)
+    
+
 
 if __name__ == "__main__":
     demo = gr.Blocks()
@@ -129,6 +168,9 @@ if __name__ == "__main__":
                         height="auto",
                         )
                 train_btn = gr.Button("Train")
+                train_log = gr.Textbox(
+                    label="Train Log"
+                )
 
         prepare_dataset_btn.click(
                 create_dataset,
@@ -151,7 +193,15 @@ if __name__ == "__main__":
                     image_output,
                     ]
                 )
-
+        train_btn.click(
+            train,
+            inputs=[
+                pet_name_input,
+            ],
+            outputs=[
+                train_log,
+            ]
+        ) 
 
     demo.launch(debug=True, share=True)
 
