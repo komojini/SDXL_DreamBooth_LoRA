@@ -4,6 +4,7 @@ from diffusers import DiffusionPipeline
 import torch
 from datetime import datetime
 import os 
+import argparse
 
 
 OUTPUT_ROOT = "checkpoints"
@@ -118,6 +119,12 @@ accelerate launch train_dreambooth_lora_sdxl.py \
   --output_dir={output_dir} \
   --mixed_precision="fp16" \
   --instance_prompt="{instance_prompt}" \
+  --class_prompt="{class_name}" \
+  --validation_prompt="{instance_prompt}" \
+  --num_validation_images=4 \
+  --validation_epochs=50 \
+  --center_crop \
+  --resume_from_checkpoint="latest" \
   --resolution={RESOLUTION} \
   --train_batch_size=1 \
   --gradient_accumulation_steps=4 \
@@ -130,21 +137,46 @@ accelerate launch train_dreambooth_lora_sdxl.py \
   --checkpoints_total_limit=5
 """
     return os.system(train_command)
+
+def parse_args(input_args=None):
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--share",
+        action="store_true",
+        default=False,
+    )
+    parser.add_argument(
+        "--debug",
+        action="store_true",
+        default=False,
+    )
+
+    if input_args is not None:
+        args = parser.parse_args(input_args)
+    else:
+        args = parser.parse_args()
     
+    return args 
 
-if __name__ == "__main__":
+
+def main(args):
     reload_lora_paths()
-
+   
     demo = gr.Blocks()
 
     with demo:
         gr.Markdown("""# SDXL LoRA DreamBooth""")
         with gr.Tabs():
             with gr.TabItem("Generation"):
-                lora_path_dropdown = gr.Dropdown(
-                    choices=lora_paths,
-                    label="LoRA Path"
-                )
+                with gr.Row():
+                    lora_path_dropdown = gr.Dropdown(
+                        choices=lora_paths,
+                        label="LoRA Path"
+                    )
+                    lora_path_refresh_btn = gr.Button(
+                        size="sm",
+                        icon="/Users/jwan/AAA/projects/python/SDXL_DreamBooth_LoRA/assets/refresh_icon.png"
+                    )
                 prompt_input = gr.Textbox(
                         label="Positive Prompt",
                         value="A photo of zwc cat"
@@ -153,10 +185,6 @@ if __name__ == "__main__":
                         label="Negative Prompt",
                         ) 
                 with gr.Row():
-                    with gr.Column():
-                        pet_name_input = gr.Textbox(
-                            label="Pet Name",
-                        )
                     with gr.Column():
                         num_inference_steps_input = gr.Number(
                                 label="Num Inference Steps",
@@ -238,6 +266,13 @@ if __name__ == "__main__":
             load_model,
             inputs=[lora_path_dropdown]
         )
+        lora_path_refresh_btn.click(reload_lora_paths)
+        
 
-    demo.launch(debug=True, share=True)
+    demo.launch(debug=args.debug, share=args.share)
 
+ 
+
+if __name__ == "__main__":
+    args = parse_args()
+    main(args)
