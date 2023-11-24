@@ -140,7 +140,8 @@ accelerate launch train_dreambooth_lora_sdxl.py \
   --seed=0 \
   --checkpoints_total_limit=5
 """
-    train_input_args = train_command.split(" ")[3:]
+    train_input_args = [arg in train_command.split(" ")[3:] if arg]
+
     print("Input args:", train_input_args)
 
     train_args = parse_train_args(
