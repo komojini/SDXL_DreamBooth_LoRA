@@ -116,30 +116,7 @@ def train(pet_name, class_name, token, progress=gr.Progress()):
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
 
-    train_command = f"""
-accelerate launch train_dreambooth_lora_sdxl.py \
-  --pretrained_model_name_or_path="{MODEL_PATH}" \
-  --instance_data_dir={instance_data_dir} \
-  --output_dir={output_dir} \
-  --mixed_precision=fp16 \
-  --instance_prompt="{instance_prompt}" \
-  --class_prompt="{class_name}" \
-  --validation_prompt="{instance_prompt}" \
-  --num_validation_images=4 \
-  --validation_epochs=50 \
-  --center_crop \
-  --resume_from_checkpoint="latest" \
-  --resolution={RESOLUTION} \
-  --train_batch_size=1 \
-  --gradient_accumulation_steps=4 \
-  --learning_rate=1e-4 \
-  --lr_scheduler="constant" \
-  --lr_warmup_steps=0 \
-  --checkpointing_steps={CHECKPOINTING_STEPS} \
-  --max_train_steps={MAX_TRAIN_STEP} \
-  --seed=0 \
-  --checkpoints_total_limit=5
-"""
+
     train_input_args = [
         f"--pretrained_model_name_or_path={MODEL_PATH}",
         f"--instance_data_dir={instance_data_dir}",
