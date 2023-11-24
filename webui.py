@@ -171,11 +171,13 @@ def main(args):
                 with gr.Row(equal_height=False):
                     lora_path_dropdown = gr.Dropdown(
                         choices=lora_paths,
-                        label="LoRA Path"
+                        label="LoRA Path",
+                        scale=10,
                     )
                     lora_path_refresh_btn = gr.Button(
                         value="",
                         size="sm",
+                        scale=1,
                         icon="assets/refresh_icon.png"
                     )
                 prompt_input = gr.Textbox(
