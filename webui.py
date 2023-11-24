@@ -175,7 +175,7 @@ def main(args):
                     )
                     lora_path_refresh_btn = gr.Button(
                         size="sm",
-                        icon="/Users/jwan/AAA/projects/python/SDXL_DreamBooth_LoRA/assets/refresh_icon.png"
+                        icon="assets/refresh_icon.png"
                     )
                 prompt_input = gr.Textbox(
                         label="Positive Prompt",
@@ -267,7 +267,7 @@ def main(args):
             inputs=[lora_path_dropdown]
         )
         lora_path_refresh_btn.click(reload_lora_paths)
-        
+
 
     demo.launch(debug=args.debug, share=args.share)
 
