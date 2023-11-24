@@ -11,11 +11,8 @@ else
     source "$ENV_DIR/bin/activate"
 fi
 
-
 pip install git+https://github.com/huggingface/diffusers
 
-pip install git+https://github.com/huggingface/diffusers
-
-pip install torchvision invisible_watermark transformers accelerate safetensors gradio
+pip install torchvision invisible_watermark transformers accelerate safetensors gradio xformers
 accelerate config
 

@@ -1,13 +1,15 @@
 from PIL import Image
+import logging 
 import gradio as gr
 from diffusers import DiffusionPipeline
 import torch
 from datetime import datetime
 import os 
 import argparse
+from accelerate.logging import get_logger
 from train_dreambooth_lora_sdxl import parse_args as parse_train_args, main as train_dreambooth_lora
 
-
+logger = get_logger(__name__)
 
 OUTPUT_ROOT = "checkpoints"
 DATASETS_DIR = "datasets"
@@ -16,9 +18,11 @@ RESOLUTION = 512
 MAX_TRAIN_STEP = 1000
 CHECKPOINTING_STEPS = 200
 LORA_ROOT_PATH = "checkpoints"
+MAX_THREADS = 1
+SAVE_IMAGES = False
+
 
 title = """SDXL Lora DreamBooth"""
-
 description = """#### Generate images of your own pet."""
 pipe: DiffusionPipeline = None
 
@@ -32,7 +36,7 @@ def reload_lora_paths(exclude_personal_models=True):
             continue
         for lora_directory in os.listdir(os.path.join(LORA_ROOT_PATH, lora_set_directory)):
             lora_paths.append(str(os.path.join(LORA_ROOT_PATH, lora_set_directory, lora_directory)))
-    print(f"LoRA Paths = {lora_paths}")
+    logger.info(f"LoRA Paths = {lora_paths}")
 
 def load_model(lora_path):
     global pipe
@@ -67,7 +71,14 @@ def crop_image(image_path, save_path):
 
 
 
-def get_image(lora_path, prompt, negative_prompt, inference_steps):
+def generate_image(
+        lora_path, 
+        prompt: str, 
+        negative_prompt: str, 
+        inference_steps: int, 
+        guidance_scale: float,
+    ):
+    global pipe
     payload = {
             "prompt": prompt,
             "negative_prompt": negative_prompt,
@@ -75,10 +86,11 @@ def get_image(lora_path, prompt, negative_prompt, inference_steps):
             "height": RESOLUTION,
             #    "samples": "1",
             "num_inference_steps": inference_steps,
-            "guidance_scale": 7.5
+            "guidance_scale": guidance_scale
             }
     image = pipe(**payload).images[0]
-    image.save(os.path.join(lora_path, f"{datetime.now().timestamp()}.png"))
+    if SAVE_IMAGES:
+        image.save(os.path.join(lora_path, f"{datetime.now().timestamp()}.png"))
     return image
 
 def preview(files, sd: gr.SelectData):
@@ -106,7 +118,7 @@ def empty_gpu_memory():
     torch.cuda.empty_cache()
 
 
-def train(pet_name, class_name, token, progress=gr.Progress()):
+def train(pet_name, class_name, token, progress=gr.Progress(track_tqdm=True)):
     empty_gpu_memory()
 
     instance_prompt = f"A photo of {token} {class_name}"
@@ -139,6 +151,7 @@ def train(pet_name, class_name, token, progress=gr.Progress()):
         f"--max_train_steps={MAX_TRAIN_STEP}",
         "--seed=0",
         "--checkpoints_total_limit=10",
+        "--enable_xformers_memory_efficient_attention",
     ]
 
     print("Input args:", train_input_args)
@@ -207,6 +220,11 @@ def main(args):
                                 label="Num Inference Steps",
                                 value=30,
                                 )
+                        guidance_scale_input = gr.Number(
+                            label="Guidance Scale",
+                            value=7.5,
+                            step=0.1
+                        )
                     with gr.Column():
                         generate_image_btn = gr.Button("Generate")
                 
@@ -257,12 +275,13 @@ def main(args):
                 ],
             )
         generate_image_btn.click(
-            get_image,
+            generate_image,
             inputs=[
                 lora_path_dropdown,
                 prompt_input,
                 negative_prompt_input,
                 num_inference_steps_input,
+                guidance_scale_input,
                 ],
             outputs=[
                 image_output,
@@ -277,7 +296,8 @@ def main(args):
             ],
             outputs=[
                 train_log,
-            ]
+            ],
+            show_progress="full",
         ) 
         lora_path_dropdown.select(
             load_model,
@@ -285,8 +305,8 @@ def main(args):
         )
         lora_path_refresh_btn.click(reload_lora_paths)
 
-
-    demo.launch(debug=args.debug, share=args.share)
+    demo.queue()
+    demo.launch(debug=args.debug, share=args.share, max_threads=MAX_THREADS)
 
  
 
