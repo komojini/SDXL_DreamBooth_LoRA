@@ -26,7 +26,7 @@ def reload_lora_paths():
     lora_paths = []
     for lora_set_directory in os.listdir(LORA_ROOT_PATH):
         for lora_directory in os.listdir(os.path.join(LORA_ROOT_PATH, lora_set_directory)):
-            lora_paths.append(os.join(LORA_ROOT_PATH, lora_set_directory, lora_directory))
+            lora_paths.append(os.path.join(LORA_ROOT_PATH, lora_set_directory, lora_directory))
 
 def load_model(lora_path):
     global pipe
