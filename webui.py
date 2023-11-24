@@ -5,6 +5,8 @@ import torch
 from datetime import datetime
 import os 
 import argparse
+from train_dreambooth_lora_sdxl import parse_args as parse_train_args, main as train_dreambooth_lora
+
 
 
 OUTPUT_ROOT = "checkpoints"
@@ -138,7 +140,13 @@ accelerate launch train_dreambooth_lora_sdxl.py \
   --seed="0" \
   --checkpoints_total_limit=5
 """
-    return os.system(train_command)
+
+    train_args = parse_train_args(
+        input_args=train_command.split(" ")[3:]
+    )
+    train_dreambooth_lora(train_args)
+
+    # return os.system(train_command)
 
 def parse_args(input_args=None):
     parser = argparse.ArgumentParser()
