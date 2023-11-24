@@ -141,7 +141,7 @@ accelerate launch train_dreambooth_lora_sdxl.py \
   --checkpoints_total_limit=5
 """
     train_input_args = [
-        f"--pretrain_model_name_or_path={MODEL_PATH}",
+        f"--pretrained_model_name_or_path={MODEL_PATH}",
         f"--instance_data_dir={instance_data_dir}",
         f"--output_dir={output_dir}",
         "--mixed_precision=fp16",
