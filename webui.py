@@ -168,7 +168,7 @@ def main(args):
         gr.Markdown("""# SDXL LoRA DreamBooth""")
         with gr.Tabs():
             with gr.TabItem("Generation"):
-                with gr.Row().style(equal_height=False):
+                with gr.Row(equal_height=False):
                     lora_path_dropdown = gr.Dropdown(
                         choices=lora_paths,
                         label="LoRA Path"
