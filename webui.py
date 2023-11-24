@@ -21,7 +21,7 @@ lora_path = "checkpoints/minsuck_checkpoints/checkpoint-1000"
 pipe: DiffusionPipeline = None
 
 
-def load_model():
+def load_model(lora_path):
     global pipe
     pipe = DiffusionPipeline.from_pretrained(
             MODEL_PATH,
@@ -54,7 +54,7 @@ def crop_image(image_path, save_path):
 
 
 
-def get_image(prompt, negative_prompt, inference_steps):
+def get_image(pet_name, prompt, negative_prompt, inference_steps):
     payload = {
             "prompt": prompt,
             "negative_prompt": negative_prompt,
@@ -65,7 +65,7 @@ def get_image(prompt, negative_prompt, inference_steps):
             "guidance_scale": 7.5
             }
     image = pipe(**payload).images[0]
-    image.save(f"outputs/minsuck_{datetime.now().timestamp()}.png")
+    image.save(f"outputs/{pet_name}_{datetime.now().timestamp()}.png")
     return image
 
 def preview(files, sd: gr.SelectData):
@@ -139,6 +139,16 @@ if __name__ == "__main__":
                         label="Negative Prompt",
                         ) 
                 with gr.Row():
+                    with gr.Column():
+                        pet_name_input = gr.Textbox(
+                            label="Pet Name",
+                        )
+                        checkpoint_input = gr.Number(
+                            label="Checkpoint",
+                            maximum=MAX_TRAIN_STEP,
+                            minimum=200,
+                            value=1000,
+                        )
                     with gr.Column():
                         num_inference_steps_input = gr.Number(
                                 label="Num Inference Steps",
