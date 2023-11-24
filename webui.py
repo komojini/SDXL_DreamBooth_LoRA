@@ -10,7 +10,7 @@ OUTPUT_ROOT = "checkpoints"
 DATASETS_DIR = "datasets"
 MODEL_PATH = "stabilityai/stable-diffusion-xl-base-1.0"
 RESOLUTION = 512
-MAX_TRAIN_STEP = 1000
+MAX_TRAIN_STEP = 2000
 CHECKPOINTING_STEPS = 200
 LORA_ROOT_PATH = "checkpoints"
 
@@ -26,7 +26,8 @@ def reload_lora_paths():
     lora_paths = []
     for lora_set_directory in os.listdir(LORA_ROOT_PATH):
         for lora_directory in os.listdir(os.path.join(LORA_ROOT_PATH, lora_set_directory)):
-            lora_paths.append(os.path.join(LORA_ROOT_PATH, lora_set_directory, lora_directory))
+            lora_paths.append(str(os.path.join(LORA_ROOT_PATH, lora_set_directory, lora_directory)))
+    print(f"LoRA Paths = {lora_paths}")
 
 def load_model(lora_path):
     global pipe
@@ -61,7 +62,7 @@ def crop_image(image_path, save_path):
 
 
 
-def get_image(pet_name, prompt, negative_prompt, inference_steps):
+def get_image(lora_path, prompt, negative_prompt, inference_steps):
     payload = {
             "prompt": prompt,
             "negative_prompt": negative_prompt,
@@ -72,7 +73,7 @@ def get_image(pet_name, prompt, negative_prompt, inference_steps):
             "guidance_scale": 7.5
             }
     image = pipe(**payload).images[0]
-    image.save(os.path.join("outputs", f"{pet_name}_{datetime.now().timestamp()}.png"))
+    image.save(os.path.join(lora_path, f"{datetime.now().timestamp()}.png"))
     return image
 
 def preview(files, sd: gr.SelectData):
@@ -156,12 +157,6 @@ if __name__ == "__main__":
                         pet_name_input = gr.Textbox(
                             label="Pet Name",
                         )
-                        checkpoint_input = gr.Number(
-                            label="Checkpoint",
-                            maximum=MAX_TRAIN_STEP,
-                            minimum=200,
-                            value=1000,
-                        )
                     with gr.Column():
                         num_inference_steps_input = gr.Number(
                                 label="Num Inference Steps",
@@ -178,9 +173,9 @@ if __name__ == "__main__":
                     preview_images = gr.Image()
                 
                 with gr.Row():
-                    pet_name_input = gr.Textbox(
-                        value="ms",
-                        label="Pet Name"
+                    instance_name_input = gr.Textbox(
+                        value="",
+                        label="Instance Name",
                         )
                     class_name_input = gr.Textbox(
                         value="cat",
@@ -210,7 +205,7 @@ if __name__ == "__main__":
             create_dataset,
             inputs=[
                 images,
-                pet_name_input,
+                instance_name_input,
                 ],
             outputs=[
                 dataset_images,
@@ -219,6 +214,7 @@ if __name__ == "__main__":
         generate_image_btn.click(
             get_image,
             inputs=[
+                lora_path_dropdown,
                 prompt_input,
                 negative_prompt_input,
                 num_inference_steps_input,
@@ -230,7 +226,7 @@ if __name__ == "__main__":
         train_btn.click(
             train,
             inputs=[
-                pet_name_input,
+                instance_name_input,
                 class_name_input,
                 token_input,
             ],
