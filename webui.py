@@ -175,7 +175,7 @@ def main(args):
                     )
                     lora_path_refresh_btn = gr.Button(
                         value="",
-                        size="lg",
+                        size="sm",
                         icon="assets/refresh_icon.png"
                     )
                 prompt_input = gr.Textbox(
