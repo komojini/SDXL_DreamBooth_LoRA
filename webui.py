@@ -137,7 +137,7 @@ accelerate launch train_dreambooth_lora_sdxl.py \
   --lr_warmup_steps=0 \
   --checkpointing_steps={CHECKPOINTING_STEPS} \
   --max_train_steps={MAX_TRAIN_STEP} \
-  --seed="0" \
+  --seed=0 \
   --checkpoints_total_limit=5
 """
     train_input_args = train_command.split(" ")[3:]
