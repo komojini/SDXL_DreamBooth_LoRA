@@ -140,10 +140,29 @@ accelerate launch train_dreambooth_lora_sdxl.py \
   --seed=0 \
   --checkpoints_total_limit=5
 """
-    train_input_args = []
-    for arg in train_command.split(" ")[3:]:
-        if arg:
-            train_input_args.append(arg)
+    train_input_args = [
+        f"--pretrain_model_name_or_path={MODEL_PATH}",
+        f"--instance_data_dir={instance_data_dir}",
+        f"--output_dir={output_dir}",
+        "--mixed_precision=fp16",
+        f"--instance_prompt='{instance_prompt}'",
+        f"--class_prompt='{class_name}'",
+        f"--validation_prompt='{instance_prompt}'",
+        "--num_validation_images=4",
+        "--validation_epochs=50",
+        "--center_crop",
+        "--resume_from_checkpoint=latest",
+        f"--resolution={RESOLUTION}",
+        "--train_batch_size=1",
+        "--gradient_accumulation_steps=4",
+        "--learning_rate=1e-4",
+        "--lr_schedular=constant",
+        "--lr_warmup_steps=0",
+        f"--checkpointing_steps={CHECKPOINTING_STEPS}",
+        f"--max_train_steps={MAX_TRAIN_STEP}",
+        "--seed=0",
+        "--checkpoints_total_limit=10",
+    ]
 
     print("Input args:", train_input_args)
 
