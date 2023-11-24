@@ -6,20 +6,27 @@ from datetime import datetime
 import os 
 
 
-OUTPUT_ROOT = "checkpoints/"
-DATASETS_DIR = "datasets/"
+OUTPUT_ROOT = "checkpoints"
+DATASETS_DIR = "datasets"
 MODEL_PATH = "stabilityai/stable-diffusion-xl-base-1.0"
 RESOLUTION = 512
 MAX_TRAIN_STEP = 1000
 CHECKPOINTING_STEPS = 200
-
+LORA_ROOT_PATH = "checkpoints"
 
 title = """SDXL Lora DreamBooth"""
 
 description = """#### Generate images of your own pet."""
-lora_path = "checkpoints/minsuck_checkpoints/checkpoint-1000"
 pipe: DiffusionPipeline = None
 
+lora_paths = []
+
+def reload_lora_paths():
+    global lora_paths
+    lora_paths = []
+    for lora_set_directory in os.listdir(LORA_ROOT_PATH):
+        for lora_directory in os.listdir(os.path.join(LORA_ROOT_PATH, lora_set_directory)):
+            lora_paths.append(os.join(LORA_ROOT_PATH, lora_set_directory, lora_directory))
 
 def load_model(lora_path):
     global pipe
@@ -65,7 +72,7 @@ def get_image(pet_name, prompt, negative_prompt, inference_steps):
             "guidance_scale": 7.5
             }
     image = pipe(**payload).images[0]
-    image.save(f"outputs/{pet_name}_{datetime.now().timestamp()}.png")
+    image.save(os.path.join("outputs", f"{pet_name}_{datetime.now().timestamp()}.png"))
     return image
 
 def preview(files, sd: gr.SelectData):
@@ -131,6 +138,10 @@ if __name__ == "__main__":
         gr.Markdown("""# SDXL LoRA DreamBooth""")
         with gr.Tabs():
             with gr.TabItem("Generation"):
+                lora_path_dropdown = gr.Dropdown(
+                    choices=lora_paths,
+                    label="LoRA Path"
+                )
                 prompt_input = gr.Textbox(
                         label="Positive Prompt",
                         value="A photo of zwc cat"
@@ -225,23 +236,10 @@ if __name__ == "__main__":
                 train_log,
             ]
         ) 
+        lora_path_dropdown.select(
+            load_model,
+            inputs=[lora_path_dropdown]
+        )
 
     demo.launch(debug=True, share=True)
 
-
-# try:
-#     demo = gr.Interface(fn=get_image,
-#                         inputs = [
-#                             gr.Textbox(label="Enter the Prompt", value="A photo of zwc cat"), 
-#                             gr.Textbox(label="Negative Prompt"),
-#                             gr.Number(label="Enter number of steps", value=30),
-#                             ],
-#                         outputs = gr.Image(type='pil'),
-#                         title = title,
-#                         description = description)
-# 
-#     demo.launch(debug='True', share=True)
-# except Exception as e:
-#     del pipe
-#     torch.cuda.empty_cache() # PyTorch thing
-#     print("Closing Gradio")
