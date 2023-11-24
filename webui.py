@@ -132,6 +132,8 @@ accelerate launch train_dreambooth_lora_sdxl.py \
     
 
 if __name__ == "__main__":
+    reload_lora_paths()
+
     demo = gr.Blocks()
 
     with demo:
