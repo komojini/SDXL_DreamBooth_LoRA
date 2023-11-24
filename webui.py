@@ -13,7 +13,7 @@ OUTPUT_ROOT = "checkpoints"
 DATASETS_DIR = "datasets"
 MODEL_PATH = "stabilityai/stable-diffusion-xl-base-1.0"
 RESOLUTION = 512
-MAX_TRAIN_STEP = 2000
+MAX_TRAIN_STEP = 1000
 CHECKPOINTING_STEPS = 200
 LORA_ROOT_PATH = "checkpoints"
 
@@ -121,7 +121,7 @@ accelerate launch train_dreambooth_lora_sdxl.py \
   --pretrained_model_name_or_path="{MODEL_PATH}" \
   --instance_data_dir={instance_data_dir} \
   --output_dir={output_dir} \
-  --mixed_precision="fp16" \
+  --mixed_precision=fp16 \
   --instance_prompt="{instance_prompt}" \
   --class_prompt="{class_name}" \
   --validation_prompt="{instance_prompt}" \
