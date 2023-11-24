@@ -26,9 +26,9 @@ def reload_lora_paths(exclude_personal_models=True):
     global lora_paths
     lora_paths = []
     for lora_set_directory in os.listdir(LORA_ROOT_PATH):
+        if "bn" in str(lora_directory) and exclude_personal_models:
+            continue
         for lora_directory in os.listdir(os.path.join(LORA_ROOT_PATH, lora_set_directory)):
-            if "bn" in str(lora_directory) and exclude_personal_models:
-                continue 
             lora_paths.append(str(os.path.join(LORA_ROOT_PATH, lora_set_directory, lora_directory)))
     print(f"LoRA Paths = {lora_paths}")
 
