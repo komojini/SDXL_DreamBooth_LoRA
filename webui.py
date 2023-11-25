@@ -9,7 +9,8 @@ import argparse
 from accelerate.logging import get_logger
 from train_dreambooth_lora_sdxl import parse_args as parse_train_args, main as train_dreambooth_lora
 
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
+
 
 OUTPUT_ROOT = "checkpoints"
 DATASETS_DIR = "datasets"
