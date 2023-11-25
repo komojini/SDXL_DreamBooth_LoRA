@@ -152,7 +152,7 @@ def train(pet_name, class_name, token, progress=gr.Progress(track_tqdm=True)):
         f"--max_train_steps={MAX_TRAIN_STEP}",
         "--seed=0",
         "--checkpoints_total_limit=10",
-        "--enable_xformers_memory_efficient_attention",
+        # "--enable_xformers_memory_efficient_attention",
     ]
 
     print("Input args:", train_input_args)
