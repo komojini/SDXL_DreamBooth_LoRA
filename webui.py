@@ -303,7 +303,7 @@ def main(args):
             load_model,
             inputs=[lora_path_dropdown]
         )
-        lora_path_refresh_btn.click(reload_lora_paths)
+        lora_path_refresh_btn.click(reload_lora_paths, lora_path_dropdown)
 
     demo.queue()
     demo.launch(debug=args.debug, share=args.share, max_threads=MAX_THREADS)
